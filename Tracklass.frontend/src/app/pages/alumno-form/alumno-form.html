@@ -1,0 +1,51 @@
+<div class="form-page">
+    <h1 class="page-title">Nuevo alumno</h1>
+
+    <form [formGroup]="form" (ngSubmit)="guardar()" class="form-card card-clasecontrol">
+
+        <mat-form-field appearance="outline">
+            <mat-label>Nombre</mat-label>
+            <input matInput formControlName="nombre">
+            <mat-error *ngIf="form.controls.nombre.invalid && form.controls.nombre.touched">
+                El nombre es obligatorio
+            </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email">
+            <mat-error *ngIf="form.controls.email.invalid && form.controls.email.touched">
+                Email inválido
+            </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+            <mat-label>Materia</mat-label>
+            <mat-select formControlName="materia">
+                <mat-option value="Ingles">Inglés</mat-option>
+                <mat-option value="Informatica">Informática</mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+            <mat-label>Teléfono</mat-label>
+            <input matInput formControlName="telefono">
+        </mat-form-field>
+
+        <mat-checkbox formControlName="activo">
+            Alumno activo
+        </mat-checkbox>
+
+        <div class="form-actions">
+            <button mat-flat-button color="primary" type="submit">
+                <mat-icon>save</mat-icon>
+                Guardar
+            </button>
+
+            <button mat-button type="button" (click)="cancelar()">
+                Cancelar
+            </button>
+        </div>
+
+    </form>
+</div>

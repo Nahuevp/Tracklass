@@ -1,0 +1,300 @@
+<ng-container *ngIf="loading(); else contenido">
+  <app-spinner mensaje="Cargando perfil..." />
+</ng-container>
+
+<ng-template #contenido>
+  <ng-container *ngIf="alumno() as a; else noAlumno">
+
+    <div class="perfil-page">
+
+      <div class="perfil-header">
+        <button mat-icon-button [routerLink]="['/alumnos']" class="back-btn">
+          <mat-icon>arrow_back</mat-icon>
+        </button>
+        <h1 class="page-title">{{ a.nombre }}</h1>
+      </div>
+
+      <mat-tab-group [(selectedIndex)]="tabIndex" animationDuration="200ms" class="perfil-tabs">
+
+        <!-- TAB INFORMACIÓN -->
+        <mat-tab label="Información">
+          <div class="tab-content">
+            <div class="info-card card-clasecontrol">
+              <h3>Datos del alumno</h3>
+
+              <div class="info-grid">
+
+                <div class="info-item">
+                  <span class="info-label">Email</span>
+                  <span class="info-value">{{ a.email || '—' }}</span>
+                </div>
+
+                <div class="info-item">
+                  <span class="info-label">Materia</span>
+                  <span class="info-value">{{ a.materia }}</span>
+                </div>
+
+                <div class="info-item">
+                  <span class="info-label">Teléfono</span>
+                  <span class="info-value">{{ a.telefono || '—' }}</span>
+                </div>
+
+                <div class="info-item">
+                  <span class="info-label">Estado</span>
+                  <span class="badge" [class.badge-activo]="a.activo" [class.badge-inactivo]="!a.activo">
+                    {{ a.activo ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </div>
+
+                <div class="info-item">
+                  <span class="info-label">Última clase</span>
+                  <span class="info-value">
+                    {{ a.ultimaClase ? formatFecha(a.ultimaClase) : '—' }}
+                  </span>
+                </div>
+
+                <div class="info-item">
+                  <span class="info-label">Clases totales</span>
+                  <span class="info-value">{{ a.clasesTotales ?? 0 }}</span>
+                </div>
+
+              </div>
+
+              <div class="info-actions">
+                <button mat-flat-button color="primary" (click)="editarAlumno(a.id)">
+                  <mat-icon>edit</mat-icon>
+                  Editar
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- TAB CLASES -->
+        <mat-tab label="Clases">
+          <div class="tab-content">
+
+            <!-- BOTÓN AGREGAR -->
+            <button mat-flat-button color="primary" style="margin-bottom:15px"
+              (click)="mostrarFormClase = !mostrarFormClase">
+              <mat-icon>add</mat-icon>
+              Agregar clase
+            </button>
+
+            <!-- FORMULARIO CREAR CLASE -->
+            <div *ngIf="mostrarFormClase" class="card-clasecontrol" style="padding:20px; margin-bottom:20px">
+
+              <h3 class="form-title">
+                {{ editandoClaseId ? 'Editar clase' : 'Nueva clase' }}
+              </h3>
+
+              <p class="form-mode">
+                {{ editandoClaseId
+                ? 'Estás modificando una clase existente'
+                : 'Completá los datos para registrar una nueva clase' }}
+              </p>
+
+              <form [formGroup]="formClase" (ngSubmit)="guardarClase()"
+                style="display:grid; gap:16px; grid-template-columns: repeat(auto-fit, minmax(220px,1fr));">
+
+                <!-- FECHA CON DATEPICKER -->
+                <mat-form-field appearance="outline">
+                  <mat-label>Fecha</mat-label>
+
+                  <input matInput [matDatepicker]="picker" [min]="minFecha" formControlName="fecha"
+                    (dateChange)="onFechaChange($event.value)">
+
+                  <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                  <mat-datepicker #picker></mat-datepicker>
+
+                  <mat-error *ngIf="formClase.controls.fecha.invalid">
+                    Fecha obligatoria
+                  </mat-error>
+                </mat-form-field>
+
+
+                <!-- HORA -->
+                <mat-form-field appearance="outline">
+                  <mat-label>Hora inicio</mat-label>
+
+                  <mat-select formControlName="horaInicio">
+                    <mat-option *ngFor="let h of horarios" [value]="h" [disabled]="horaOcupada(h)">
+
+                      {{ h }}
+
+                      <span *ngIf="horaOcupada(h)" style="color:#d97706; font-size:12px;">
+                        (ocupada)
+                      </span>
+
+                    </mat-option>
+
+                  </mat-select>
+
+                  <mat-error *ngIf="formClase.controls.horaInicio.invalid">
+                    Hora obligatoria
+                  </mat-error>
+                </mat-form-field>
+
+                <!-- DURACIÓN -->
+                <mat-form-field appearance="outline">
+                  <mat-label>Duración (min)</mat-label>
+                  <input matInput type="number" min="60" step="30" formControlName="duracionMinutos">
+                </mat-form-field>
+
+                <!-- ESTADO -->
+                <mat-form-field appearance="outline">
+                  <mat-label>Estado</mat-label>
+                  <mat-select formControlName="estado">
+                    <mat-option value="Programada">Programada</mat-option>
+                    <mat-option value="Realizada">Realizada</mat-option>
+                    <mat-option value="Cancelada">Cancelada</mat-option>
+                  </mat-select>
+                </mat-form-field>
+
+                <!-- PRECIO -->
+                <mat-form-field appearance="outline">
+                  <mat-label>Precio</mat-label>
+                  <input matInput type="number" min="0" formControlName="precio">
+                </mat-form-field>
+
+                <!-- NOTAS -->
+                <mat-form-field appearance="outline" style="grid-column: span 2;">
+                  <mat-label>Notas</mat-label>
+                  <textarea matInput rows="3" formControlName="notas">
+      </textarea>
+                </mat-form-field>
+
+                <!-- BOTONES -->
+                <div style="grid-column: span 2; display:flex; gap:10px;">
+                  <button mat-flat-button type="submit" [ngClass]="editandoClaseId ? 'btn-editar' : 'btn-crear'"
+                    [disabled]="diaLleno">
+
+                    {{ editandoClaseId ? 'Actualizar clase' : 'Guardar clase' }}
+                  </button>
+                </div>
+
+                <div *ngIf="diaLleno" class="dia-lleno-warning">
+                  ⚠ Este día ya no tiene horarios disponibles
+                </div>
+
+
+              </form>
+
+            </div>
+
+            <!-- LISTA DE CLASES -->
+            <ng-container *ngIf="clases().length > 0; else noClases">
+              <div class="clases-list">
+
+                <div class="clase-card card-clasecontrol" *ngFor="let clase of clases(); trackBy: trackById">
+
+                  <div class="clase-left">
+
+                    <div class="clase-fecha">
+                      {{ formatFecha(clase.fecha) }}
+                    </div>
+
+                    <div class="clase-hora">
+                      <mat-icon>schedule</mat-icon>
+                      {{ clase.horaInicio }} - {{ clase.duracionMinutos }} min
+                    </div>
+
+                    <div class="clase-precio">
+                      <mat-icon>attach_money</mat-icon>
+                      {{ clase.precio }}
+                    </div>
+
+                  </div>
+
+                  <div class="clase-right">
+
+                    <!-- Estado -->
+                    <span class="badge" [ngClass]="getEstadoClass(clase.estado)">
+                      {{ clase.estado }}
+                    </span>
+
+                    <!-- Acciones -->
+                    <div class="clase-actions">
+
+                      <!-- Marcar como realizada -->
+                      <button mat-icon-button color="accent" *ngIf="clase.estado === 'Programada'"
+                        (click)="marcarRealizada(clase)">
+                        <mat-icon>check_circle</mat-icon>
+                      </button>
+
+                      <!-- Editar -->
+                      <button mat-icon-button color="primary" *ngIf="clase.estado === 'Programada'"
+                        (click)="editarClase(clase)">
+                        <mat-icon>edit</mat-icon>
+                      </button>
+
+                      <!-- Eliminar -->
+                      <button mat-icon-button color="warn" (click)="eliminarClase(clase.id)">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+
+
+                    </div>
+
+
+                  </div>
+
+                </div>
+
+              </div>
+            </ng-container>
+
+
+            <ng-template #noClases>
+              <div class="empty-state-card">
+                <mat-icon>event_busy</mat-icon>
+                <p>No hay clases registradas</p>
+              </div>
+            </ng-template>
+
+          </div>
+        </mat-tab>
+
+        <!-- TAB NOTAS -->
+        <mat-tab label="Notas">
+          <div class="tab-content">
+
+            <!-- Mensaje si no hay notas -->
+            <div *ngIf="!alumno()?.notas?.trim()">
+              <p class="sin-notas">Sin notas registradas</p>
+            </div>
+
+            <!-- Mostrar nota existente -->
+            <div *ngIf="alumno()?.notas?.trim()" class="nota-preview">
+              {{ alumno()?.notas }}
+            </div>
+
+            <!-- Editor -->
+            <mat-form-field appearance="outline" style="width:100%; margin-top:20px;">
+              <mat-label>Editar nota general</mat-label>
+              <textarea matInput [(ngModel)]="notaGeneral" rows="6">
+      </textarea>
+            </mat-form-field>
+
+            <div style="margin-top:10px;">
+              <button mat-flat-button color="primary" (click)="guardarNota()">
+                Guardar nota
+              </button>
+            </div>
+
+          </div>
+        </mat-tab>
+
+
+      </mat-tab-group>
+
+    </div>
+
+  </ng-container>
+
+  <ng-template #noAlumno>
+    <p>Alumno no encontrado</p>
+  </ng-template>
+
+</ng-template>

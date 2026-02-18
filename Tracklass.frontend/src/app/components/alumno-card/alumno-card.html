@@ -1,0 +1,31 @@
+<a [routerLink]="['/alumnos', alumno().id]" class="alumno-card card-clasecontrol cursor-pointer">
+  <div class="card-header-row">
+    <div class="avatar">
+      {{ getIniciales(alumno().nombre) }}
+    </div>
+    <span class="badge" [class.badge-activo]="alumno().activo" [class.badge-inactivo]="!alumno().activo">
+      {{ alumno().activo ? 'Activo' : 'Inactivo' }}
+    </span>
+  </div>
+  <h3 class="alumno-nombre">{{ alumno().nombre }}</h3>
+  <div class="alumno-materia">
+    <mat-icon>menu_book</mat-icon>
+    {{ alumno().materia }}
+  </div>
+  <div class="alumno-telefono">
+    <i class="fab fa-whatsapp whatsapp-icon"></i>
+    <ng-container *ngIf="getTelefonoLink() as link; else sinTelefono">
+      <a [href]="link" target="_blank" class="telefono-link" (click)="$event.stopPropagation()">
+        {{ alumno().telefono }}
+      </a>
+    </ng-container>
+    <ng-template #sinTelefono>
+      <span>—</span>
+    </ng-template>
+  </div>
+
+  <div class="alumno-stats">
+    <span>Última clase: {{ formatFecha(alumno().ultimaClase) }}</span>
+    <span>Clases totales: {{ alumno().clasesTotales ?? 0 }}</span>
+  </div>
+</a>

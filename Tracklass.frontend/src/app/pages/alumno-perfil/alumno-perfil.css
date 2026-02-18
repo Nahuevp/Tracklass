@@ -1,0 +1,293 @@
+.perfil-page {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.perfil-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.back-btn {
+  color: #64748b;
+}
+
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.perfil-tabs {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+
+.tab-content {
+  padding: 24px;
+}
+
+.info-card h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  color: #1e293b;
+}
+
+.info-card {
+  padding: 24px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-label {
+  font-size: 0.8rem;
+  color: var(--text-muted, #64748b);
+}
+
+.info-value {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.info-actions {
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.info-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.clases-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.clase-card {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.clase-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.clase-fecha {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.clase-hora {
+  font-size: 0.9rem;
+  color: var(--text-muted, #64748b);
+}
+
+.badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.badge-activo {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge-inactivo {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.estado-realizada {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.estado-programada {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.estado-cancelada {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.notas-card {
+  padding: 24px;
+}
+
+.notas-text {
+  margin: 0;
+  color: #475569;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.empty-state-card {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--text-muted, #64748b);
+}
+
+.empty-state-card mat-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.clase-card {
+  padding: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 12px;
+  transition: 0.2s ease;
+}
+
+.clase-card:hover {
+  background: #f8fafc;
+}
+
+.clase-left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.clase-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.clase-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.clase-precio {
+  font-size: 0.85rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.clase-actions button {
+  opacity: 0.7;
+  transition: 0.2s;
+}
+
+.clase-actions button:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.form-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #1e293b;
+}
+
+.form-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-bottom: 12px;
+}
+
+.form-status mat-icon {
+  font-size: 18px;
+  opacity: 0.8;
+}
+
+.btn-crear {
+  background-color: #2563eb !important;
+  color: white !important;
+}
+
+.btn-editar {
+  background-color: #16a34a !important;
+  color: white !important;
+}
+
+.form-mode {
+  margin: -6px 0 18px 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.card-clasecontrol.clickable {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card-clasecontrol.clickable:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.card-clasecontrol.clickable {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mat-mdc-option[disabled] {
+  opacity: 0.4 !important;
+}
+
+.estado-realizada {
+  background: #dcfce7;
+  color: #166534;
+  transition: all 0.3s ease;
+}
+
+.dia-lleno-warning {
+  color: #d97706;
+  font-size: 13px;
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+.sin-notas {
+  color: #888;
+  font-style: italic;
+}
+
+.nota-preview {
+  white-space: pre-line;
+}
+
+

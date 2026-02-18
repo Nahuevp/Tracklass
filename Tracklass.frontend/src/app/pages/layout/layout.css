@@ -1,0 +1,13 @@
+.main-content {
+  margin-left: 260px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f8fafc;
+}
+
+.content-area {
+  flex: 1;
+  padding: 24px 32px;
+  padding-top: 0;
+}

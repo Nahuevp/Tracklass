@@ -1,0 +1,59 @@
+<div class="alumnos-page">
+  <h1 class="page-title">Alumnos</h1>
+
+  <div class="toolbar">
+    <div class="search-filter-bar">
+      <div class="search-box">
+      <mat-icon>search</mat-icon>
+      <input
+        type="text"
+        placeholder="Buscar por nombre o materia..."
+        [value]="searchTerm()"
+        (input)="onSearchChange($any($event.target).value)"
+      />
+      </div>
+      <div class="filter-pills">
+      <button
+        class="pill"
+        [class.active]="filtroEstado() === 'todos'"
+        (click)="setFiltro('todos')"
+      >
+        Todos ({{ counts().todos }})
+      </button>
+      <button
+        class="pill"
+        [class.active]="filtroEstado() === 'activos'"
+        (click)="setFiltro('activos')"
+      >
+        Activos ({{ counts().activos }})
+      </button>
+      <button
+        class="pill"
+        [class.active]="filtroEstado() === 'inactivos'"
+        (click)="setFiltro('inactivos')"
+      >
+        Inactivos ({{ counts().inactivos }})
+      </button>
+      </div>
+    </div>
+    <button mat-flat-button color="primary" (click)="nuevoAlumno()">
+      <mat-icon>add</mat-icon>
+      Nuevo alumno
+    </button>
+  </div>
+
+  @if (loading()) {
+    <app-spinner mensaje="Cargando alumnos..." />
+  } @else if (alumnosFiltrados().length > 0) {
+    <div class="alumnos-grid">
+      @for (alumno of alumnosFiltrados(); track alumno.id) {
+        <app-alumno-card [alumno]="alumno" />
+      }
+    </div>
+  } @else {
+    <div class="empty-state-card">
+      <mat-icon>person_search</mat-icon>
+      <p>No hay alumnos que coincidan con tu búsqueda</p>
+    </div>
+  }
+</div>

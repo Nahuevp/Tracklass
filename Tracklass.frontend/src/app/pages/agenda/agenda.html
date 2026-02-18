@@ -1,0 +1,133 @@
+<div class="agenda-page">
+  <h1 class="page-title">Agenda</h1>
+
+  @if (resumen(); as r) {
+  <div class="resumen-bar card-clasecontrol">
+    <div class="resumen-item">
+      <span class="resumen-value">Hoy: {{ r.hoy }} clases</span>
+    </div>
+    <div class="resumen-item">
+      <span class="resumen-value">Esta semana: {{ r.estaSemana }}</span>
+    </div>
+    <div class="resumen-item">
+      <span class="resumen-value">Este mes: {{ r.esteMes }}</span>
+    </div>
+    <div class="resumen-item">
+      <span class="resumen-value">Ingreso estimado mes: {{ formatCurrency(r.ingresoEstimadoMes) }}</span>
+    </div>
+  </div>
+  }
+
+  <div class="filter-pills">
+    <button class="pill" [class.active]="filtroEstado() === 'todas'" (click)="setFiltro('todas')">
+      Todas ({{ counts().todas }})
+    </button>
+    <button class="pill" [class.active]="filtroEstado() === 'programadas'" (click)="setFiltro('programadas')">
+      Programadas ({{ counts().programadas }})
+    </button>
+    <button class="pill" [class.active]="filtroEstado() === 'realizadas'" (click)="setFiltro('realizadas')">
+      Realizadas ({{ counts().realizadas }})
+    </button>
+    <button class="pill" [class.active]="filtroEstado() === 'canceladas'" (click)="setFiltro('canceladas')">
+      Canceladas ({{ counts().canceladas }})
+    </button>
+  </div>
+
+  @if (loading()) {
+  <app-spinner mensaje="Cargando agenda..." />
+  } @else {
+  <div class="agenda-sections">
+    <section class="agenda-section">
+      <h2 class="section-title">
+        <span class="section-dot"></span>
+        Hoy ({{ clasesPorSeccion().hoy.length }} clases)
+      </h2>
+      @if (clasesPorSeccion().hoy.length > 0) {
+      <div class="clases-list">
+        @for (clase of clasesPorSeccion().hoy; track clase.id) {
+        <div class="clase-card card-clasecontrol clickable" (click)="irAAlumno(clase.alumnoId)">
+          <div class="clase-main">
+            <mat-icon class="clase-avatar">person</mat-icon>
+            <div class="clase-details">
+              <span class="clase-nombre">{{ clase.alumnoNombre }} ({{ clase.materia }})</span>
+              <div class="clase-time">
+                <mat-icon>schedule</mat-icon>
+                {{ clase.horaInicio }} - {{ clase.duracionMinutos }} min
+              </div>
+            </div>
+          </div>
+          <span class="badge" [ngClass]="getEstadoClass(clase.estado)">{{ clase.estado }}</span>
+        </div>
+        }
+      </div>
+      } @else {
+      <p class="empty-text">No hay clases para hoy</p>
+      }
+    </section>
+
+    <section class="agenda-section">
+      <h2 class="section-title">
+        <mat-icon>event</mat-icon>
+        Próximas
+      </h2>
+      @if (clasesPorSeccion().proximas.length > 0) {
+      @for (grupo of groupByFecha(clasesPorSeccion().proximas) | keyvalue; track grupo.key) {
+      <div class="fecha-grupo">
+        <h3 class="fecha-titulo">{{ grupo.key }}</h3>
+        <div class="clases-list">
+          @for (clase of grupo.value; track clase.id) {
+          <div class="clase-card card-clasecontrol clickable" (click)="irAAlumno(clase.alumnoId)">
+            <div class="clase-main">
+              <mat-icon class="clase-avatar">event</mat-icon>
+              <div class="clase-details">
+                <span class="clase-nombre">{{ clase.alumnoNombre }} ({{ clase.materia }})</span>
+                <div class="clase-time">
+                  {{ clase.horaInicio }} - {{ clase.duracionMinutos }} min
+                </div>
+              </div>
+            </div>
+            <span class="badge" [ngClass]="getEstadoClass(clase.estado)">{{ clase.estado }}</span>
+          </div>
+          }
+        </div>
+      </div>
+      }
+      } @else {
+      <p class="empty-text">No hay clases próximas</p>
+      }
+    </section>
+
+    <section class="agenda-section">
+      <h2 class="section-title">
+        <mat-icon>history</mat-icon>
+        Pasadas
+      </h2>
+      @if (clasesPorSeccion().pasadas.length > 0) {
+      @for (grupo of groupByFecha(clasesPorSeccion().pasadas) | keyvalue; track grupo.key) {
+      <div class="fecha-grupo">
+        <h3 class="fecha-titulo">{{ grupo.key }}</h3>
+        <div class="clases-list">
+          @for (clase of grupo.value; track clase.id) {
+          <div class="clase-card card-clasecontrol clickable" (click)="irAAlumno(clase.alumnoId)">
+            <div class="clase-main">
+              <mat-icon class="clase-avatar">person</mat-icon>
+              <div class="clase-details">
+                <span class="clase-nombre">{{ clase.alumnoNombre }} ({{ clase.materia }})</span>
+                <div class="clase-time">
+                  {{ clase.horaInicio }} - {{ clase.duracionMinutos }} min
+                </div>
+              </div>
+            </div>
+            <span class="badge" [ngClass]="getEstadoClass(clase.estado)">{{ clase.estado }}</span>
+          </div>
+          }
+        </div>
+      </div>
+      }
+      } @else {
+      <p class="empty-text">No hay clases pasadas</p>
+      }
+    </section>
+  </div>
+  }
+</div>

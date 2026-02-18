@@ -1,0 +1,175 @@
+<ng-container *ngIf="loading(); else dashboardContent">
+  <app-spinner mensaje="Cargando dashboard..." />
+</ng-container>
+
+<ng-template #dashboardContent>
+  <ng-container *ngIf="data() as d">
+
+    <div class="dashboard">
+
+      <div class="dashboard-header">
+        <h1 class="page-title">Dashboard</h1>
+
+        <div class="month-selector">
+          <button mat-icon-button (click)="cambiarMes(-1)">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+
+          <span class="month-text">{{ currentMonth }}</span>
+
+          <button mat-icon-button (click)="cambiarMes(1)">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
+      </div>
+
+
+      <div class="metrics-grid">
+
+        <div class="metric-card">
+          <mat-icon class="metric-icon">menu_book</mat-icon>
+          <div class="metric-content">
+            <span class="metric-value">{{ d.totalClasesHoy }}</span>
+            <span class="metric-label">Clases hoy</span>
+            <span class="metric-subtext">
+              <ng-container *ngIf="d.proximaClase; else sinClase">
+                Próxima: {{ d.proximaClase.horaInicio }} - {{ d.proximaClase.alumnoNombre }}
+              </ng-container>
+              <ng-template #sinClase>
+                Sin clases programadas
+              </ng-template>
+            </span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <mat-icon class="metric-icon metric-icon-green">calendar_month</mat-icon>
+          <div class="metric-content">
+            <span class="metric-value">{{ d.clasesRealizadasMes }}</span>
+            <span class="metric-label">Clases este mes</span>
+            <span class="metric-subtext">Clases realizadas</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <mat-icon class="metric-icon metric-icon-green">paid</mat-icon>
+          <div class="metric-content">
+            <span class="metric-value">
+              {{ formatCurrency(d.ingresosMes) }}
+            </span>
+            <span class="metric-label">Ingresos reales</span>
+            <span class="metric-subtext">
+              Clases realizadas - {{ currentMonth }}
+            </span>
+          </div>
+        </div>
+
+
+        <div class="metric-card">
+          <mat-icon class="metric-icon metric-icon-yellow">attach_money</mat-icon>
+          <div class="metric-content">
+            <span class="metric-value">
+              {{ formatCurrency(d.ingresosEstimadosMes) }}
+            </span>
+            <span class="metric-label">Ingresos estimados</span>
+            <span class="metric-subtext">
+              Clases programadas - {{ currentMonth }}
+            </span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <mat-icon class="metric-icon metric-icon-blue">people</mat-icon>
+          <div class="metric-content">
+            <span class="metric-value">{{ d.alumnosActivos }}</span>
+            <span class="metric-label">Alumnos activos</span>
+            <span class="metric-subtext">{{ d.alumnosTotales }} alumnos en total</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="dashboard-grid">
+
+        <!-- CLASES HOY -->
+        <section class="dashboard-section">
+          <h2 class="section-title">Clases de hoy</h2>
+
+          <ng-container *ngIf="d.clasesHoy.length > 0; else noClasesHoy">
+            <div class="clases-list">
+              <div class="clase-card card-clasecontrol clickable" *ngFor="let clase of d.clasesHoy; trackBy: trackById"
+                (click)="irAAlumno(clase.alumnoId)">
+
+
+
+                <div class="clase-info">
+                  <mat-icon class="clase-avatar-icon">person</mat-icon>
+                  <div class="clase-details">
+                    <span class="clase-nombre">{{ clase.alumnoNombre }}</span>
+                    <span class="clase-materia">{{ clase.materia }}</span>
+                  </div>
+                </div>
+
+                <div class="clase-time">
+                  <mat-icon>schedule</mat-icon>
+                  {{ clase.horaInicio }} - {{ clase.duracionMinutos }} min
+                </div>
+
+                <div class="clase-badges">
+                  <ng-container *ngIf="getMinutosProxima(clase) as label">
+                    <span class="badge badge-siguiente">{{ label }}</span>
+                  </ng-container>
+
+                  <span class="badge" [ngClass]="getEstadoClass(clase.estado)">
+                    {{ clase.estado }}
+                  </span>
+                </div>
+
+              </div>
+            </div>
+          </ng-container>
+
+          <ng-template #noClasesHoy>
+            <p class="empty-state">No hay clases para hoy</p>
+          </ng-template>
+
+        </section>
+
+        <!-- PROXIMAS CLASES -->
+        <section class="dashboard-section">
+          <h2 class="section-title">Próximas clases</h2>
+
+          <ng-container *ngIf="d.proximasClases.length > 0; else noProximas">
+            <div class="clases-list">
+              <div class="clase-card card-clasecontrol" *ngFor="let clase of d.proximasClases; trackBy: trackById"
+                (click)="irAAlumno(clase.alumnoId)">
+
+
+                <div class="clase-info">
+                  <mat-icon class="clase-avatar-icon">event</mat-icon>
+                  <div class="clase-details">
+                    <span class="clase-nombre">{{ clase.alumnoNombre }}</span>
+                    <span class="clase-materia">{{ clase.materia }}</span>
+                  </div>
+                </div>
+
+                <div class="clase-time">
+                  {{ formatFecha(clase.fecha) }}, {{ clase.horaInicio }}
+                </div>
+
+              </div>
+            </div>
+          </ng-container>
+
+          <ng-template #noProximas>
+            <p class="empty-state">No hay clases próximas</p>
+          </ng-template>
+
+        </section>
+
+      </div>
+
+    </div>
+
+  </ng-container>
+</ng-template>
