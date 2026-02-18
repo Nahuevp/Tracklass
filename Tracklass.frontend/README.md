@@ -1,30 +1,72 @@
-# estudiantes-frontend
+# 🎓 Tracklass
 
-Frontend de la aplicación Estudiantes App, desarrollado en Angular 18 y Angular Material. Se conecta a la API `Estudiantes-API` para gestionar un listado de estudiantes con operaciones CRUD.
+Tracklass es una aplicación web full stack desarrollada con **Angular 18 + .NET 8 + SQL Server**, orientada a la gestión de clases particulares.
 
-## Tecnologías utilizadas
+El objetivo del proyecto es centralizar la administración de alumnos, clases e ingresos en una única plataforma, con una estructura escalable tipo SaaS.
 
+---
+
+## 🚀 Tecnologías utilizadas
+
+### 🔹 Backend
+- .NET 8
+- ASP.NET Core Web API
+- Entity Framework Core
+- SQL Server
+- Swagger
+
+### 🔹 Frontend
 - Angular 18
-- Angular Material
 - TypeScript
 - HTML / CSS
 
-##  Objetivo
+---
 
-Diseñar una interfaz moderna y funcional que consuma el backend de ASP.NET Core y permita interactuar con la lista de estudiantes.
+## 🎯 Objetivo del proyecto
 
-##  Funcionalidades
+Tracklass surge como una evolución de una aplicación CRUD básica hacia una solución más completa orientada a la gestión académica.
 
-- Listar estudiantes
-- Ver detalles de un estudiante
-- Agregar estudiante
-- Editar estudiante existente
-- Eliminar estudiante
-- Spinner de carga y notificaciones con Toastr
+El foco principal es:
 
-##  Estructura principal
+- Organizar alumnos
+- Agendar clases
+- Registrar ingresos
+- Visualizar métricas generales
 
-- `/components`: componentes reutilizables como Spinner, Navbar, ConfirmDialog y Card del estudiante.
-- `/interfaces`: definición de las interfaces de los objetos que se manejan en la app (estudiantes, respuestas del backend).
-- `/pages`: páginas principales: Home, Listado, Detalle, Upsert (crear/editar).
-- `/services`: servicios para la conexión HTTP con la API (usando `HttpClient` y `RxJS`).
+El proyecto está pensado como base para una futura aplicación SaaS escalable.
+
+---
+
+## 🧩 Funcionalidades principales
+
+### 👨‍🎓 Gestión de alumnos
+- Crear, editar y eliminar alumnos
+- Activar / desactivar alumnos
+- Registrar información de contacto y notas
+
+### 📅 Gestión de clases
+- Crear clases asociadas a alumnos
+- Definir fecha y precio
+- Control de historial de clases
+
+### 💰 Control de ingresos
+- Registro de precio por clase
+- Visualización de ingresos acumulados
+- Métricas generales desde el dashboard
+
+### 📊 Dashboard
+- Resumen general
+- Cantidad de alumnos activos
+- Clases registradas
+- Ingresos totales
+
+---
+
+## 🏗 Arquitectura
+
+El proyecto está dividido en dos aplicaciones independientes:
+
+👨‍💻 Autor
+
+Desarrollado por Nahuevp
+Proyecto personal orientado a portfolio y crecimiento profesional.
