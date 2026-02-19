@@ -241,6 +241,7 @@ namespace Tracklass.API.Controllers
                     Message = "Clase no encontrada"
                 });
 
+            // ❗ Si ya está realizada, no permitir cambios
             if (clase.Estado == EstadoClase.Realizada)
             {
                 return BadRequest(new Response<object>
@@ -250,7 +251,20 @@ namespace Tracklass.API.Controllers
                 });
             }
 
-            // Validar duración mínima y múltiplos de 30
+            // ✅ CASO ESPECIAL: solo marcar como realizada
+            if (model.Estado == EstadoClase.Realizada)
+            {
+                clase.Estado = EstadoClase.Realizada;
+                await _context.SaveChangesAsync();
+
+                return Ok(new Response<object>
+                {
+                    IsSuccess = true,
+                    Message = "Clase marcada como realizada"
+                });
+            }
+
+            // 🔹 Validar duración mínima y múltiplos de 30
             if (model.DuracionMinutos < 60 || model.DuracionMinutos % 30 != 0)
             {
                 return BadRequest(new Response<object>
@@ -260,19 +274,20 @@ namespace Tracklass.API.Controllers
                 });
             }
 
-
             var nuevaInicio = model.Fecha.Date + model.HoraInicio;
             var nuevaFin = nuevaInicio.AddMinutes(model.DuracionMinutos);
 
-            if (nuevaInicio < DateTime.Now && model.Estado != EstadoClase.Realizada)
+            // 🔹 No permitir mover al pasado si no es realizada
+            if (nuevaInicio < DateTime.Now)
             {
                 return BadRequest(new Response<object>
                 {
                     IsSuccess = false,
-                    Message = "No se puede mover una clase al pasado si no está realizada"
+                    Message = "No se puede mover una clase al pasado"
                 });
             }
 
+            // 🔹 Validar solapamiento
             var clasesDelDia = await _context.Clases
                 .Where(c =>
                     c.Id != id &&
@@ -298,6 +313,7 @@ namespace Tracklass.API.Controllers
                 });
             }
 
+            // 🔹 Actualización normal
             clase.AlumnoId = model.AlumnoId;
             clase.Fecha = model.Fecha;
             clase.HoraInicio = model.HoraInicio;
@@ -314,6 +330,7 @@ namespace Tracklass.API.Controllers
                 Message = "Clase actualizada correctamente"
             });
         }
+
 
 
         [HttpDelete("{id}")]
