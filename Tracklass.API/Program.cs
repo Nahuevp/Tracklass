@@ -30,10 +30,16 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 // Auto-apply migrations on startup (works on Render and any hosted environment)
-using (var scope = app.Services.CreateScope())
+try
 {
+    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<TracklassDbContext>();
     db.Database.Migrate();
+    Console.WriteLine("✅ Database migration applied successfully.");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"⚠️ Migration failed (app will still start): {ex.Message}");
 }
 
 // Configure the HTTP request pipeline.
