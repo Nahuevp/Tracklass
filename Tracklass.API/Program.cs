@@ -4,10 +4,10 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-var connextionString = builder.Configuration.GetConnectionString("SqlServer");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<TracklassDbContext>(op =>
 {
-    op.UseSqlServer(connextionString);
+    op.UseNpgsql(connectionString);
 });
 
 // Enable CORS
@@ -29,14 +29,19 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// Auto-apply migrations on startup (works on Render and any hosted environment)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<TracklassDbContext>();
+    db.Database.Migrate();
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-app.UseHttpsRedirection();
 
 app.UseCors("AllowAll");
 

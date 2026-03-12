@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Tracklass.API.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialTracklass : Migration
+    public partial class InitialPostgres : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,14 +15,14 @@ namespace Tracklass.API.Migrations
                 name: "Alumnos",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Nombre = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Materia = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Activo = table.Column<bool>(type: "bit", nullable: false),
-                    Telefono = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Notas = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    FechaCreacion = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Nombre = table.Column<string>(type: "text", nullable: false),
+                    Email = table.Column<string>(type: "text", nullable: true),
+                    Materia = table.Column<string>(type: "text", nullable: false),
+                    Activo = table.Column<bool>(type: "boolean", nullable: false),
+                    Telefono = table.Column<string>(type: "text", nullable: true),
+                    Notas = table.Column<string>(type: "text", nullable: true),
+                    FechaCreacion = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -33,15 +33,15 @@ namespace Tracklass.API.Migrations
                 name: "Clases",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    AlumnoId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Fecha = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    HoraInicio = table.Column<TimeSpan>(type: "time", nullable: false),
-                    DuracionMinutos = table.Column<int>(type: "int", nullable: false),
-                    Estado = table.Column<int>(type: "int", nullable: false),
-                    Precio = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Notas = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    FechaCreacion = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    AlumnoId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Fecha = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    HoraInicio = table.Column<TimeSpan>(type: "interval", nullable: false),
+                    DuracionMinutos = table.Column<int>(type: "integer", nullable: false),
+                    Estado = table.Column<int>(type: "integer", nullable: false),
+                    Precio = table.Column<decimal>(type: "numeric", nullable: false),
+                    Notas = table.Column<string>(type: "text", nullable: true),
+                    FechaCreacion = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {

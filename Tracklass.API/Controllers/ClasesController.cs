@@ -241,7 +241,7 @@ namespace Tracklass.API.Controllers
                     Message = "Clase no encontrada"
                 });
 
-            // ❗ Si ya está realizada, no permitir cambios
+            // Si ya está realizada, no permitir cambios
             if (clase.Estado == EstadoClase.Realizada)
             {
                 return BadRequest(new Response<object>
@@ -251,7 +251,7 @@ namespace Tracklass.API.Controllers
                 });
             }
 
-            // ✅ CASO ESPECIAL: solo marcar como realizada
+            // CASO ESPECIAL: solo marcar como realizada
             if (model.Estado == EstadoClase.Realizada)
             {
                 clase.Estado = EstadoClase.Realizada;
@@ -264,7 +264,7 @@ namespace Tracklass.API.Controllers
                 });
             }
 
-            // 🔹 Validar duración mínima y múltiplos de 30
+            // Validar duración mínima y múltiplos de 30
             if (model.DuracionMinutos < 60 || model.DuracionMinutos % 30 != 0)
             {
                 return BadRequest(new Response<object>
@@ -277,7 +277,7 @@ namespace Tracklass.API.Controllers
             var nuevaInicio = model.Fecha.Date + model.HoraInicio;
             var nuevaFin = nuevaInicio.AddMinutes(model.DuracionMinutos);
 
-            // 🔹 No permitir mover al pasado si no es realizada
+            // No permitir mover al pasado si no es realizada
             if (nuevaInicio < DateTime.Now)
             {
                 return BadRequest(new Response<object>
@@ -287,7 +287,7 @@ namespace Tracklass.API.Controllers
                 });
             }
 
-            // 🔹 Validar solapamiento
+            // Validar solapamiento
             var clasesDelDia = await _context.Clases
                 .Where(c =>
                     c.Id != id &&
@@ -330,7 +330,6 @@ namespace Tracklass.API.Controllers
                 Message = "Clase actualizada correctamente"
             });
         }
-
 
 
         [HttpDelete("{id}")]
