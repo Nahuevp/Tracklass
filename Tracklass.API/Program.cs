@@ -1,6 +1,9 @@
 using Tracklass.API;
 using Microsoft.EntityFrameworkCore;
 
+// Fix for PostgreSQL DateTime "Kind=Unspecified" error when migrating from SQL Server
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
