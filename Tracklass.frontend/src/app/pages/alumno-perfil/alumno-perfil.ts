@@ -375,12 +375,20 @@ export class AlumnoPerfil implements OnInit {
 
     if (clase.estado !== 'Programada') return;
 
+    let horaParse = clase.horaInicio;
+    if (horaParse.split(':').length === 2) {
+      horaParse += ':00'; // asegura hh:mm:ss
+    }
+
+    const d = new Date(clase.fecha);
+    const fechaFormateada = `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+
     const data = {
       alumnoId: clase.alumnoId,
-      fecha: clase.fecha,
-      horaInicio: clase.horaInicio,
+      fecha: fechaFormateada,
+      horaInicio: horaParse,
       duracionMinutos: clase.duracionMinutos,
-      estado: 1,
+      estado: 1, // Realizada
       precio: clase.precio ?? 0,
       notas: clase.notas ?? ''
     };
