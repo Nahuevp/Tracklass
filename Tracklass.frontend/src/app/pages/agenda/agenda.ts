@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 import { DashboardService } from '../../services/dashboard.service';
 import { ClasesService } from '../../services/clases.service';
 import { Clase } from '../../interfaces/clase.interface';
@@ -7,13 +8,14 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Spinner } from '../../components/spinner/spinner';
 
-
 type FiltroEstado = 'todas' | 'programadas' | 'realizadas' | 'canceladas';
+
+import { ExportService } from '../../services/export.service';
 
 @Component({
   selector: 'app-agenda',
   standalone: true,
-  imports: [CommonModule, MatIconModule, Spinner],
+  imports: [CommonModule, MatIconModule, MatButtonModule, Spinner],
   templateUrl: './agenda.html',
   styleUrl: './agenda.css'
 })
@@ -21,9 +23,14 @@ export class Agenda implements OnInit {
   private dashboardService = inject(DashboardService);
   private clasesService = inject(ClasesService);
   private router = inject(Router);
+  private exportService = inject(ExportService);
 
   clases = signal<Clase[]>([]);
   resumen = signal<{ hoy: number; estaSemana: number; esteMes: number; ingresoEstimadoMes: number } | null>(null);
+
+  exportarExcel() {
+    this.exportService.exportarAgendaExcel(this.clasesFiltradas());
+  }
   loading = signal(true);
   filtroEstado = signal<FiltroEstado>('todas');
 

@@ -1,15 +1,19 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 import { Spinner } from '../../components/spinner/spinner';
 import { DashboardService } from '../../services/dashboard.service';
 import { DashboardData } from '../../interfaces/dashboard.interface';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { generarGoogleCalendarUrl } from '../../utils/calendar.util';
+
+import { ExportService } from '../../services/export.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, MatIconModule, Spinner],
+  imports: [CommonModule, MatIconModule, MatButtonModule, Spinner],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
@@ -17,12 +21,19 @@ export class Dashboard implements OnInit {
 
   private dashboardService = inject(DashboardService);
   private router = inject(Router);
+  private exportService = inject(ExportService);
 
   data = signal<DashboardData | null>(null);
   loading = signal(true);
 
   mesActual = new Date();
   currentMonth = '';
+
+  exportarReporte() {
+    const d = this.data();
+    if (!d) return;
+    this.exportService.exportarDashboardPDF(d, this.currentMonth);
+  }
 
   ngOnInit() {
     this.actualizarMesTexto();
@@ -117,6 +128,10 @@ export class Dashboard implements OnInit {
     }
 
     return null;
+  }
+
+  getCalendarUrl(clase: any): string {
+    return generarGoogleCalendarUrl(clase, clase.alumnoNombre, clase.materia);
   }
 
   irAAlumno(alumnoId: string) {

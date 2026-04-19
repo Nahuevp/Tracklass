@@ -1,63 +1,85 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Tracklass.API;
 using Tracklass.API.Models;
+using Tracklass.API.Services;
 
 namespace Tracklass.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class DashboardController(TracklassDbContext context) : ControllerBase
+    [Authorize]
+    public class DashboardController : ControllerBase
     {
-        private readonly TracklassDbContext _context = context;
+        private readonly TracklassDbContext _context;
+        private readonly AuthService _authService;
+
+        public DashboardController(TracklassDbContext context, AuthService authService)
+        {
+            _context = context;
+            _authService = authService;
+        }
+
+        private Guid GetUserId() => _authService.GetUserIdFromClaims(User)
+            ?? throw new UnauthorizedAccessException();
 
         [HttpGet]
         public async Task<IActionResult> Get([FromQuery] DateTime? fecha)
         {
             try
             {
+                var userId = GetUserId();
                 var hoy = fecha?.Date ?? DateTime.Today;
                 var inicioMes = new DateTime(hoy.Year, hoy.Month, 1);
                 var finMes = inicioMes.AddMonths(1).AddDays(-1);
 
-                var clasesHoy = await _context.Clases
+                // Base query scoped to user
+                var clasesQuery = _context.Clases
                     .Include(c => c.Alumno)
+                    .Where(c => c.Alumno!.UsuarioId == userId);
+
+                var clasesHoy = await clasesQuery
                     .Where(c => c.Fecha.Date == hoy && c.Estado != EstadoClase.Cancelada)
                     .OrderBy(c => c.HoraInicio)
                     .ToListAsync();
 
                 var proximaClase = clasesHoy.FirstOrDefault(c => c.Estado == EstadoClase.Programada)
-                    ?? await _context.Clases
-                        .Include(c => c.Alumno)
+                    ?? await clasesQuery
                         .Where(c => c.Fecha.Date >= hoy && c.Estado == EstadoClase.Programada)
                         .OrderBy(c => c.Fecha)
                         .ThenBy(c => c.HoraInicio)
                         .FirstOrDefaultAsync();
 
-                var clasesRealizadasMes = await _context.Clases.CountAsync(c =>
+                var clasesRealizadasMes = await clasesQuery.CountAsync(c =>
                     c.Fecha.Date >= inicioMes &&
                     c.Fecha.Date <= finMes &&
                     c.Estado == EstadoClase.Realizada);
 
-                // INGRESOS REALES (SOLO REALIZADAS)
-                var ingresosMes = await _context.Clases
+                // INGRESOS REALES (SOLO REALIZADAS Y PAGADAS)
+                var ingresosMes = await clasesQuery
                     .Where(c => c.Fecha.Date >= inicioMes
                              && c.Fecha.Date <= finMes
-                             && c.Estado == EstadoClase.Realizada)
+                             && c.Estado == EstadoClase.Realizada
+                             && c.Pagada)
+                    .SumAsync(c => c.Precio);
+                    
+                // DEUDA TOTAL (REALIZADAS PERO NO PAGADAS HISTORICAMENTE)
+                var deudaTotal = await clasesQuery
+                    .Where(c => c.Estado == EstadoClase.Realizada && !c.Pagada)
                     .SumAsync(c => c.Precio);
 
                 // INGRESOS ESTIMADOS (SOLO PROGRAMADAS)
-                var ingresosEstimadosMes = await _context.Clases
+                var ingresosEstimadosMes = await clasesQuery
                     .Where(c => c.Fecha.Date >= inicioMes
                              && c.Fecha.Date <= finMes
                              && c.Estado == EstadoClase.Programada)
                     .SumAsync(c => c.Precio);
 
-                var alumnosActivos = await _context.Alumnos.CountAsync(a => a.Activo);
-                var alumnosTotales = await _context.Alumnos.CountAsync();
+                var alumnosActivos = await _context.Alumnos.CountAsync(a => a.Activo && a.UsuarioId == userId);
+                var alumnosTotales = await _context.Alumnos.CountAsync(a => a.UsuarioId == userId);
 
-                var proximasClases = await _context.Clases
-                    .Include(c => c.Alumno)
+                var proximasClases = await clasesQuery
                     .Where(c => c.Fecha.Date > hoy && c.Estado == EstadoClase.Programada)
                     .OrderBy(c => c.Fecha)
                     .ThenBy(c => c.HoraInicio)
@@ -70,12 +92,12 @@ namespace Tracklass.API.Controllers
 
                 var finSemana = inicioSemana.AddDays(6);
 
-                var clasesEstaSemana = await _context.Clases.CountAsync(c =>
+                var clasesEstaSemana = await clasesQuery.CountAsync(c =>
                     c.Fecha.Date >= inicioSemana &&
                     c.Fecha.Date <= finSemana &&
                     c.Estado != EstadoClase.Cancelada);
 
-                var clasesEsteMes = await _context.Clases.CountAsync(c =>
+                var clasesEsteMes = await clasesQuery.CountAsync(c =>
                     c.Fecha.Date >= inicioMes &&
                     c.Fecha.Date <= finMes &&
                     c.Estado != EstadoClase.Cancelada);
@@ -94,7 +116,8 @@ namespace Tracklass.API.Controllers
                             fecha = c.Fecha,
                             horaInicio = c.HoraInicio.ToString(@"hh\:mm"),
                             duracionMinutos = c.DuracionMinutos,
-                            estado = c.Estado.ToString()
+                            estado = c.Estado.ToString(),
+                            pagada = c.Pagada
                         }),
 
                         proximaClase = proximaClase != null ? new
@@ -107,6 +130,7 @@ namespace Tracklass.API.Controllers
 
                         clasesRealizadasMes,
                         ingresosMes,
+                        deudaTotal,
                         ingresosEstimadosMes,
                         alumnosActivos,
                         alumnosTotales,
@@ -137,7 +161,6 @@ namespace Tracklass.API.Controllers
             }
             catch (Exception ex)
             {
-                // This makes the CORS middleware still execute because the pipeline doesn't short-circuit with an unhandled exception
                 return StatusCode(500, new Response<object>
                 {
                     IsSuccess = false,

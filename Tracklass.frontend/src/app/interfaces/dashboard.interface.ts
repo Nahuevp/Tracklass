@@ -3,6 +3,7 @@ export interface DashboardData {
   proximaClase?: ProximaClase;
   clasesRealizadasMes: number;
   ingresosMes: number;
+  deudaTotal: number;
   ingresosEstimadosMes: number;
   alumnosActivos: number;
   alumnosTotales: number;
@@ -20,6 +21,7 @@ export interface ClaseHoy {
   horaInicio: string;
   duracionMinutos: number;
   estado: string;
+  pagada?: boolean;
 }
 
 export interface ProximaClase {

@@ -1,5 +1,11 @@
 <div class="agenda-page">
-  <h1 class="page-title">Agenda</h1>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <h1 class="page-title" style="margin-bottom: 0;">Agenda</h1>
+    <button mat-flat-button color="primary" (click)="exportarExcel()">
+      <mat-icon>insert_drive_file</mat-icon>
+      Exportar Excel
+    </button>
+  </div>
 
   @if (resumen(); as r) {
   <div class="resumen-bar card-clasecontrol">

@@ -17,6 +17,24 @@
       <mat-icon>calendar_month</mat-icon>
       <span>Agenda</span>
     </a>
+    <a routerLink="/pagos" routerLinkActive="active" class="nav-item">
+      <mat-icon>account_balance_wallet</mat-icon>
+      <span>Pagos</span>
+    </a>
   </nav>
+
+  <div class="sidebar-footer">
+    <div class="profile-section">
+      <div class="avatar">{{ authService.getIniciales() }}</div>
+      <div class="profile-info">
+        <span class="profile-name">{{ authService.getNombre() }}</span>
+        <span class="profile-plan">{{ authService.getEmail() }}</span>
+      </div>
+    </div>
+    <button class="logout-btn" (click)="logout()">
+      <mat-icon>logout</mat-icon>
+      <span>Cerrar sesión</span>
+    </button>
+  </div>
 
 </aside>

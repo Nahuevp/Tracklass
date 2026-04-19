@@ -18,6 +18,8 @@ export interface ClaseCrearActualizar {
   estado: number;
   precio: number;
   notas?: string;
+  pagada?: boolean;
+  fechaPago?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -49,6 +51,10 @@ export class ClasesService {
 
   actualizar(id: string, data: ClaseCrearActualizar): Observable<ApiResponse<unknown>> {
     return this.http.put<ApiResponse<unknown>>(`${this.baseUrl}/${id}`, data);
+  }
+
+  actualizarPago(id: string, pagada: boolean): Observable<ApiResponse<{pagada: boolean, fechaPago: string | null}>> {
+    return this.http.patch<ApiResponse<{pagada: boolean, fechaPago: string | null}>>(`${this.baseUrl}/${id}/pago`, pagada);
   }
 
   eliminar(id: string): Observable<ApiResponse<unknown>> {

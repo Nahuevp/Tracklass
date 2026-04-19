@@ -23,6 +23,9 @@ namespace Tracklass.API.Models
         public string? Notas { get; set; }
         
         public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
+
+        public Guid UsuarioId { get; set; }
+        public Usuario? Usuario { get; set; }
     }
 
     public class AlumnoCrearActualizar

@@ -20,6 +20,9 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { FormsModule } from '@angular/forms';
 import { MatDividerModule } from '@angular/material/divider';
 import { Spinner } from '../../components/spinner/spinner';
+import { generarWhatsAppLink } from '../../utils/whatsapp.util';
+import { generarGoogleCalendarUrl } from '../../utils/calendar.util';
+import { ExportService } from '../../services/export.service';
 
 @Component({
   selector: 'app-alumno-perfil',
@@ -52,6 +55,7 @@ export class AlumnoPerfil implements OnInit {
   private clasesService = inject(ClasesService);
   private toast = inject(ToastrService);
   private fb = inject(FormBuilder);
+  private exportService = inject(ExportService);
 
   minDate = new Date(); // Para bloquear fechas pasadas
 
@@ -60,6 +64,12 @@ export class AlumnoPerfil implements OnInit {
   tabIndex = 0; // 0 = Información, 1 = Clases, 2 = Notas
 
   editandoClaseId: string | null = null;
+  
+  exportarHistorial() {
+    const a = this.alumno();
+    if (!a) return;
+    this.exportService.exportarClasesAlumnoPDF(a.nombre, a.materia, this.clases());
+  }
 
   horariosOcupados: string[] = [];
 
@@ -185,6 +195,25 @@ export class AlumnoPerfil implements OnInit {
     });
   }
 
+  getWhatsAppLink(clase: Clase | null = null): string | null {
+    const a = this.alumno();
+    if (!a?.telefono) return null;
+    
+    let mensaje = `Hola ${a.nombre}, te escribo por Tracklass.`;
+    if (clase) {
+      const fechaFormat = this.formatFecha(clase.fecha);
+      mensaje = `Hola ${a.nombre}, te recuerdo tu clase de ${a.materia} programada para el ${fechaFormat} a las ${clase.horaInicio}.`;
+    }
+    
+    return generarWhatsAppLink(a.telefono, mensaje);
+  }
+
+  getCalendarUrl(clase: Clase): string | null {
+    const a = this.alumno();
+    if (!a) return null;
+    return generarGoogleCalendarUrl(clase, a.nombre, a.materia);
+  }
+
   editarAlumno(id: string) {
     this.router.navigate(['/alumnos/editar', id]);
   }
@@ -196,6 +225,18 @@ export class AlumnoPerfil implements OnInit {
       case 'cancelada': return 'estado-cancelada';
       default: return '';
     }
+  }
+
+  marcarPago(clase: Clase, pagada: boolean) {
+    this.clasesService.actualizarPago(clase.id, pagada).subscribe({
+      next: (res) => {
+        if (res.isSuccess) {
+          this.toast.success(res.message);
+          this.cargarClases(clase.alumnoId);
+        }
+      },
+      error: () => this.toast.error('Error al actualizar estado de pago')
+    });
   }
 
   validarFechaHoraPasada(): { [key: string]: boolean } | null {

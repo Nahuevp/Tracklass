@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Tracklass.API;
@@ -11,9 +12,11 @@ using Tracklass.API;
 namespace Tracklass.API.Migrations
 {
     [DbContext(typeof(TracklassDbContext))]
-    partial class TracklassDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260419021953_AddAuthAndUsuario")]
+    partial class AddAuthAndUsuario
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -82,17 +85,11 @@ namespace Tracklass.API.Migrations
                     b.Property<DateTime>("FechaCreacion")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<DateTime?>("FechaPago")
-                        .HasColumnType("timestamp without time zone");
-
                     b.Property<TimeSpan>("HoraInicio")
                         .HasColumnType("interval");
 
                     b.Property<string>("Notas")
                         .HasColumnType("text");
-
-                    b.Property<bool>("Pagada")
-                        .HasColumnType("boolean");
 
                     b.Property<decimal>("Precio")
                         .HasColumnType("numeric");

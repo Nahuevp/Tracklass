@@ -1,20 +1,34 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Tracklass.API;
 using Tracklass.API.Models;
+using Tracklass.API.Services;
 
 namespace Tracklass.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AlumnosController(TracklassDbContext context) : ControllerBase
+    [Authorize]
+    public class AlumnosController : ControllerBase
     {
-        private readonly TracklassDbContext _context = context;
+        private readonly TracklassDbContext _context;
+        private readonly AuthService _authService;
+
+        public AlumnosController(TracklassDbContext context, AuthService authService)
+        {
+            _context = context;
+            _authService = authService;
+        }
+
+        private Guid GetUserId() => _authService.GetUserIdFromClaims(User)
+            ?? throw new UnauthorizedAccessException();
 
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] string? search, [FromQuery] string? estado)
         {
-            var query = _context.Alumnos.AsQueryable();
+            var userId = GetUserId();
+            var query = _context.Alumnos.Where(a => a.UsuarioId == userId).AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -56,7 +70,9 @@ namespace Tracklass.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var alumno = await _context.Alumnos.FindAsync(id);
+            var userId = GetUserId();
+            var alumno = await _context.Alumnos.FirstOrDefaultAsync(a => a.Id == id && a.UsuarioId == userId);
+
             if (alumno == null)
                 return NotFound(new Response<Alumno> { IsSuccess = false, Message = "Alumno no encontrado" });
 
@@ -105,6 +121,8 @@ namespace Tracklass.API.Controllers
                 });
             }
 
+            var userId = GetUserId();
+
             var alumno = new Alumno
             {
                 Nombre = model.Nombre,
@@ -112,7 +130,8 @@ namespace Tracklass.API.Controllers
                 Materia = model.Materia.Trim(),
                 Activo = model.Activo,
                 Telefono = model.Telefono,
-                Notas = model.Notas
+                Notas = model.Notas,
+                UsuarioId = userId
             };
             await _context.Alumnos.AddAsync(alumno);
             await _context.SaveChangesAsync();
@@ -131,7 +150,9 @@ namespace Tracklass.API.Controllers
             if (id == Guid.Empty)
                 return BadRequest(new Response<AlumnoCrearActualizar> { IsSuccess = false, Result = model, Message = "ID inválido" });
 
-            var alumno = await _context.Alumnos.FindAsync(id);
+            var userId = GetUserId();
+            var alumno = await _context.Alumnos.FirstOrDefaultAsync(a => a.Id == id && a.UsuarioId == userId);
+
             if (alumno == null)
                 return NotFound(new Response<AlumnoCrearActualizar> { IsSuccess = false, Result = model, Message = "Alumno no encontrado" });
 
@@ -154,7 +175,9 @@ namespace Tracklass.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var alumno = await _context.Alumnos.FindAsync(id);
+            var userId = GetUserId();
+            var alumno = await _context.Alumnos.FirstOrDefaultAsync(a => a.Id == id && a.UsuarioId == userId);
+
             if (alumno == null)
                 return NotFound(new Response<Alumno> { IsSuccess = false, Message = "Alumno no encontrado" });
 

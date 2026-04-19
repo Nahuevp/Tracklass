@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import type { Alumno } from '../../interfaces/alumno.interface';
 import { CommonModule } from '@angular/common';
+import { generarWhatsAppLink } from '../../utils/whatsapp.util';
 
 @Component({
   selector: 'app-alumno-card',
@@ -30,16 +31,10 @@ export class AlumnoCard {
   }
 
   getTelefonoLink(): string | null {
-  const tel = this.alumno()?.telefono;
-
-  if (!tel || tel.trim() === '') {
-    return null;
+    const al = this.alumno();
+    if (!al?.telefono) return null;
+    
+    const defaultMessage = `Hola ${al.nombre}, te escribo por tus clases.`;
+    return generarWhatsAppLink(al.telefono, defaultMessage);
   }
-
-  // Quita espacios y cero inicial
-  const limpio = tel.replace(/\s+/g, '').replace(/^0/, '');
-
-  return `https://wa.me/598${limpio}`;
-}
-
 }

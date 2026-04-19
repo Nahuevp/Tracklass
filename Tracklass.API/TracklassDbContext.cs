@@ -11,6 +11,7 @@ namespace Tracklass.API
         }
         public DbSet<Alumno> Alumnos { get; set; }
         public DbSet<Clase> Clases { get; set; }
+        public DbSet<Usuario> Usuarios { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -19,6 +20,16 @@ namespace Tracklass.API
                 .WithMany()
                 .HasForeignKey(c => c.AlumnoId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Alumno>()
+                .HasOne(a => a.Usuario)
+                .WithMany()
+                .HasForeignKey(a => a.UsuarioId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Usuario>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
         }
     }
 }

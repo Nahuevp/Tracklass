@@ -1,0 +1,71 @@
+<div class="pagos-page">
+  <div class="header-actions">
+    <h1 class="page-title">Gestión de Pagos</h1>
+    
+    <div class="deuda-card" *ngIf="deudaTotal() > 0">
+      <mat-icon class="deuda-icon">warning</mat-icon>
+      <div class="deuda-info">
+        <span class="deuda-label">Deuda Total Pendiente</span>
+        <span class="deuda-value">{{ formatCurrency(deudaTotal()) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="filter-pills">
+    <button class="pill" [class.active]="filtro() === 'pendientes'" (click)="setFiltro('pendientes')">
+      Pendientes ({{ counts().pendientes }})
+    </button>
+    <button class="pill" [class.active]="filtro() === 'pagadas'" (click)="setFiltro('pagadas')">
+      Pagadas ({{ counts().pagadas }})
+    </button>
+  </div>
+
+  @if (loading()) {
+    <app-spinner mensaje="Cargando pagos..." />
+  } @else {
+    <div class="clases-list mt-4">
+      @if (clasesFiltradas().length > 0) {
+        @for (clase of clasesFiltradas(); track clase.id) {
+          <div class="clase-card card-clasecontrol">
+            <div class="clase-left">
+              <div class="clase-avatar">
+                <mat-icon>person</mat-icon>
+              </div>
+              <div class="clase-info">
+                <h3 class="clase-nombre">{{ clase.alumnoNombre }} ({{ clase.materia }})</h3>
+                <div class="clase-meta">
+                  <span class="meta-item">
+                    <mat-icon>calendar_today</mat-icon>
+                    {{ formatFecha(clase.fecha) }}
+                  </span>
+                  <span class="meta-item">
+                    <mat-icon>attach_money</mat-icon>
+                    {{ formatCurrency(clase.precio || 0) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="clase-right">
+              <span class="badge" [ngClass]="clase.pagada ? 'badge-success' : 'badge-danger'">
+                {{ clase.pagada ? 'Pagada' : 'Pendiente' }}
+              </span>
+              
+              <button mat-icon-button
+                [color]="clase.pagada ? 'warn' : 'primary'"
+                (click)="marcarPago(clase, !clase.pagada)"
+                [title]="clase.pagada ? 'Marcar como pendiente' : 'Marcar como pagada'">
+                <mat-icon>{{ clase.pagada ? 'money_off' : 'attach_money' }}</mat-icon>
+              </button>
+            </div>
+          </div>
+        }
+      } @else {
+        <div class="empty-state">
+          <mat-icon>check_circle</mat-icon>
+          <p>No hay clases en esta categoría.</p>
+        </div>
+      }
+    </div>
+  }
+</div>

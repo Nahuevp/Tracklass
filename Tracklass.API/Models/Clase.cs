@@ -30,6 +30,10 @@ namespace Tracklass.API.Models
         
         public string? Notas { get; set; }
         
+        public bool Pagada { get; set; } = false;
+        
+        public DateTime? FechaPago { get; set; }
+        
         public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
     }
 
@@ -51,5 +55,9 @@ namespace Tracklass.API.Models
         public decimal Precio { get; set; } = 300;
 
         public string? Notas { get; set; }
+        
+        public bool Pagada { get; set; } = false;
+        
+        public DateTime? FechaPago { get; set; }
     }
 }

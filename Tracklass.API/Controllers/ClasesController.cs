@@ -1,21 +1,39 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Tracklass.API;
 using Tracklass.API.Models;
+using Tracklass.API.Services;
 
 namespace Tracklass.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ClasesController(TracklassDbContext context, IConfiguration config) : ControllerBase
+    [Authorize]
+    public class ClasesController : ControllerBase
     {
-        private readonly TracklassDbContext _context = context;
-        private readonly decimal _precioDefault = config.GetValue<decimal>("ClaseControl:PrecioPorClase", 300);
+        private readonly TracklassDbContext _context;
+        private readonly decimal _precioDefault;
+        private readonly AuthService _authService;
+
+        public ClasesController(TracklassDbContext context, IConfiguration config, AuthService authService)
+        {
+            _context = context;
+            _precioDefault = config.GetValue<decimal>("ClaseControl:PrecioPorClase", 300);
+            _authService = authService;
+        }
+
+        private Guid GetUserId() => _authService.GetUserIdFromClaims(User)
+            ?? throw new UnauthorizedAccessException();
 
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] string? estado, [FromQuery] DateTime? desde, [FromQuery] DateTime? hasta)
         {
-            var query = _context.Clases.Include(c => c.Alumno).AsQueryable();
+            var userId = GetUserId();
+            var query = _context.Clases
+                .Include(c => c.Alumno)
+                .Where(c => c.Alumno!.UsuarioId == userId)
+                .AsQueryable();
 
             if (estado != null)
             {
@@ -42,7 +60,9 @@ namespace Tracklass.API.Controllers
                 duracionMinutos = c.DuracionMinutos,
                 estado = c.Estado.ToString(),
                 precio = c.Precio,
-                notas = c.Notas
+                notas = c.Notas,
+                pagada = c.Pagada,
+                fechaPago = c.FechaPago
             });
 
             return Ok(new Response<object>
@@ -56,6 +76,13 @@ namespace Tracklass.API.Controllers
         [HttpGet("alumno/{alumnoId}")]
         public async Task<IActionResult> GetByAlumno(Guid alumnoId)
         {
+            var userId = GetUserId();
+
+            // Verify the alumno belongs to this user
+            var alumnoExists = await _context.Alumnos.AnyAsync(a => a.Id == alumnoId && a.UsuarioId == userId);
+            if (!alumnoExists)
+                return NotFound(new Response<object> { IsSuccess = false, Message = "Alumno no encontrado" });
+
             var clases = await _context.Clases
                 .Where(c => c.AlumnoId == alumnoId)
                 .OrderByDescending(c => c.Fecha)
@@ -71,7 +98,9 @@ namespace Tracklass.API.Controllers
                 duracionMinutos = c.DuracionMinutos,
                 estado = c.Estado.ToString(),
                 precio = c.Precio,
-                notas = c.Notas
+                notas = c.Notas,
+                pagada = c.Pagada,
+                fechaPago = c.FechaPago
             });
 
 
@@ -86,7 +115,11 @@ namespace Tracklass.API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var clase = await _context.Clases.Include(c => c.Alumno).FirstOrDefaultAsync(c => c.Id == id);
+            var userId = GetUserId();
+            var clase = await _context.Clases
+                .Include(c => c.Alumno)
+                .FirstOrDefaultAsync(c => c.Id == id && c.Alumno!.UsuarioId == userId);
+
             if (clase == null)
                 return NotFound(new Response<Clase> { IsSuccess = false, Message = "Clase no encontrada" });
 
@@ -104,7 +137,9 @@ namespace Tracklass.API.Controllers
                     duracionMinutos = clase.DuracionMinutos,
                     estado = clase.Estado.ToString(),
                     precio = clase.Precio,
-                    notas = clase.Notas
+                    notas = clase.Notas,
+                    pagada = clase.Pagada,
+                    fechaPago = clase.FechaPago
                 },
                 Message = "Clase encontrada"
             });
@@ -113,9 +148,12 @@ namespace Tracklass.API.Controllers
         [HttpGet("horarios-ocupados")]
         public async Task<IActionResult> GetHorariosOcupados([FromQuery] DateTime fecha)
         {
+            var userId = GetUserId();
             var clasesDelDia = await _context.Clases
+                .Include(c => c.Alumno)
                 .Where(c => c.Fecha.Date == fecha.Date &&
-                            c.Estado != EstadoClase.Cancelada)
+                            c.Estado != EstadoClase.Cancelada &&
+                            c.Alumno!.UsuarioId == userId)
                 .ToListAsync();
 
             var horariosOcupados = new List<string>();
@@ -142,7 +180,9 @@ namespace Tracklass.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] ClaseCrearActualizar model)
         {
-            var alumno = await _context.Alumnos.FindAsync(model.AlumnoId);
+            var userId = GetUserId();
+            var alumno = await _context.Alumnos.FirstOrDefaultAsync(a => a.Id == model.AlumnoId && a.UsuarioId == userId);
+
             if (alumno == null)
                 return BadRequest(new Response<object>
                 {
@@ -173,11 +213,13 @@ namespace Tracklass.API.Controllers
                 });
             }
 
-            // Traemos SOLO clases del día
+            // Traemos SOLO clases del día del usuario
             var clasesDelDia = await _context.Clases
+                .Include(c => c.Alumno)
                 .Where(c =>
                     c.Fecha.Date == model.Fecha.Date &&
-                    c.Estado != EstadoClase.Cancelada)
+                    c.Estado != EstadoClase.Cancelada &&
+                    c.Alumno!.UsuarioId == userId)
                 .ToListAsync();
 
             // Validamos solapamiento en memoria
@@ -209,7 +251,9 @@ namespace Tracklass.API.Controllers
                 DuracionMinutos = model.DuracionMinutos,
                 Estado = model.Estado,
                 Precio = precio,
-                Notas = model.Notas
+                Notas = model.Notas,
+                Pagada = model.Pagada,
+                FechaPago = model.FechaPago
             };
 
             await _context.Clases.AddAsync(clase);
@@ -224,7 +268,8 @@ namespace Tracklass.API.Controllers
                     alumnoNombre = alumno.Nombre,
                     fecha = clase.Fecha,
                     horaInicio = clase.HoraInicio.ToString(@"hh\:mm"),
-                    estado = clase.Estado.ToString()
+                    estado = clase.Estado.ToString(),
+                    pagada = clase.Pagada
                 },
                 Message = "Clase creada correctamente"
             });
@@ -233,7 +278,11 @@ namespace Tracklass.API.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(Guid id, [FromBody] ClaseCrearActualizar model)
         {
-            var clase = await _context.Clases.FindAsync(id);
+            var userId = GetUserId();
+            var clase = await _context.Clases
+                .Include(c => c.Alumno)
+                .FirstOrDefaultAsync(c => c.Id == id && c.Alumno!.UsuarioId == userId);
+
             if (clase == null)
                 return NotFound(new Response<object>
                 {
@@ -241,27 +290,20 @@ namespace Tracklass.API.Controllers
                     Message = "Clase no encontrada"
                 });
 
-            // Si ya está realizada, no permitir cambios
-            if (clase.Estado == EstadoClase.Realizada)
+            // Si ya está realizada, no permitir cambios de horario
+            if (clase.Estado == EstadoClase.Realizada && model.Estado != EstadoClase.Realizada)
             {
                 return BadRequest(new Response<object>
                 {
                     IsSuccess = false,
-                    Message = "No se puede modificar una clase ya realizada"
+                    Message = "No se puede cambiar el estado de una clase ya realizada"
                 });
             }
 
             // CASO ESPECIAL: solo marcar como realizada
-            if (model.Estado == EstadoClase.Realizada)
+            if (model.Estado == EstadoClase.Realizada && clase.Estado != EstadoClase.Realizada)
             {
                 clase.Estado = EstadoClase.Realizada;
-                await _context.SaveChangesAsync();
-
-                return Ok(new Response<object>
-                {
-                    IsSuccess = true,
-                    Message = "Clase marcada como realizada"
-                });
             }
 
             // Validar duración mínima y múltiplos de 30
@@ -278,7 +320,7 @@ namespace Tracklass.API.Controllers
             var nuevaFin = nuevaInicio.AddMinutes(model.DuracionMinutos);
 
             // No permitir mover al pasado si no es realizada
-            if (nuevaInicio < DateTime.Now)
+            if (nuevaInicio < DateTime.Now && model.Estado != EstadoClase.Realizada)
             {
                 return BadRequest(new Response<object>
                 {
@@ -289,10 +331,12 @@ namespace Tracklass.API.Controllers
 
             // Validar solapamiento
             var clasesDelDia = await _context.Clases
+                .Include(c => c.Alumno)
                 .Where(c =>
                     c.Id != id &&
                     c.Fecha.Date == model.Fecha.Date &&
-                    c.Estado != EstadoClase.Cancelada)
+                    c.Estado != EstadoClase.Cancelada &&
+                    c.Alumno!.UsuarioId == userId)
                 .ToListAsync();
 
             var existeSolapamiento = clasesDelDia.Any(c =>
@@ -321,6 +365,8 @@ namespace Tracklass.API.Controllers
             clase.Estado = model.Estado;
             clase.Precio = model.Precio;
             clase.Notas = model.Notas;
+            clase.Pagada = model.Pagada;
+            clase.FechaPago = model.FechaPago;
 
             await _context.SaveChangesAsync();
 
@@ -332,10 +378,38 @@ namespace Tracklass.API.Controllers
         }
 
 
+        [HttpPatch("{id}/pago")]
+        public async Task<IActionResult> ActualizarPago(Guid id, [FromBody] bool pagada)
+        {
+            var userId = GetUserId();
+            var clase = await _context.Clases
+                .Include(c => c.Alumno)
+                .FirstOrDefaultAsync(c => c.Id == id && c.Alumno!.UsuarioId == userId);
+
+            if (clase == null)
+                return NotFound(new Response<object> { IsSuccess = false, Message = "Clase no encontrada" });
+
+            clase.Pagada = pagada;
+            clase.FechaPago = pagada ? DateTime.UtcNow : null;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new Response<object>
+            {
+                IsSuccess = true,
+                Message = pagada ? "Clase marcada como pagada" : "Clase marcada como pendiente",
+                Result = new { pagada = clase.Pagada, fechaPago = clase.FechaPago }
+            });
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var clase = await _context.Clases.FindAsync(id);
+            var userId = GetUserId();
+            var clase = await _context.Clases
+                .Include(c => c.Alumno)
+                .FirstOrDefaultAsync(c => c.Id == id && c.Alumno!.UsuarioId == userId);
+
             if (clase == null)
                 return NotFound(new Response<Clase> { IsSuccess = false, Message = "Clase no encontrada" });
 

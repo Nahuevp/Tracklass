@@ -11,4 +11,6 @@ export interface Clase {
   estado: EstadoClase;
   precio?: number;
   notas?: string;
+  pagada?: boolean;
+  fechaPago?: string;
 }
