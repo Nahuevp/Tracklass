@@ -1,6 +1,6 @@
 # 🎓 Tracklass
 
-Tracklass es una aplicación web full stack desarrollada con **Angular 18 + .NET 8 + SQL Server**, orientada a la gestión de clases particulares.
+Tracklass es una aplicación web full stack desarrollada con **Angular 20 + .NET 8 + PostgreSQL**, orientada a la gestión de clases particulares.
 
 El objetivo del proyecto es centralizar la administración de alumnos, clases e ingresos en una única plataforma, con una estructura escalable tipo SaaS.
 
@@ -12,11 +12,11 @@ El objetivo del proyecto es centralizar la administración de alumnos, clases e 
 - .NET 8
 - ASP.NET Core Web API
 - Entity Framework Core
-- SQL Server
+- PostgreSQL
 - Swagger
 
 ### 🔹 Frontend
-- Angular 18
+- Angular 20
 - TypeScript
 - HTML / CSS
 
